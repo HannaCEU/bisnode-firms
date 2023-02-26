@@ -29,7 +29,7 @@ library(lubridate)
 library(RColorBrewer)
 library(stats)
 library(viridis)
-rm(list=ls())
+
 # add colours 
 color <- c(brewer.pal( 3, "Set2" )[1], brewer.pal( 3, "Set2" )[2], brewer.pal( 3, "Set2" )[3], brewer.pal( 3, "Set2" )[5])
 
@@ -114,7 +114,7 @@ data <- data %>%
          gender_m = factor(gender, levels = c("female", "male", "mix")),
          m_region_loc = factor(region_m, levels = c("Central", "East", "West")))
 
-# histogram for
+# histogram for distributions visualisation
 h1 <- ggplot( data = data, aes( x = curr_assets ) ) +
   geom_histogram( fill = color[1]) +
   labs( x='\n Current assets', y="",
@@ -172,7 +172,7 @@ data <- data %>%
   mutate(total_assets_bs = intang_assets + curr_assets + fixed_assets)
 summary(data$total_assets_bs)
 
-#Creating 
+#Creating new variables
 pl_names <- c("extra_exp","extra_inc",  "extra_profit_loss", "inc_bef_tax" ,"inventories",
               "material_exp", "profit_loss_year", "personnel_exp")
 bs_names <- c("intang_assets", "curr_liab", "fixed_assets", "liq_assets", "curr_assets",
@@ -285,6 +285,9 @@ data <- data %>%
 to_filter <- sapply(data, function(x) sum(is.na(x)))
 to_filter[to_filter > 0]
 
+ # standardize original income variable
+data <- data %>% mutate( inc_bef_tax_std = inc_bef_tax / sales)                   
+                    
 # plot fast growth probability distribution across income
 fg_inc<-ggplot(data = data, aes(x=inc_bef_tax_pl, y=as.numeric(fast_growth))) +
   geom_point () +
@@ -292,10 +295,6 @@ fg_inc<-ggplot(data = data, aes(x=inc_bef_tax_pl, y=as.numeric(fast_growth))) +
   labs(x = "Standardized income before tax",y = "Fast growth", title="Fast growth probability distribution") +
   theme_bw()
 fg_inc
-
-# standardize original income variable
-data <- data %>% mutate( inc_bef_tax_std = inc_bef_tax / sales)
-
 
 # write data to csv
 write.csv(data, "bisnode_cleaned.csv")
