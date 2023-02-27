@@ -64,7 +64,7 @@ data <- data %>%
   group_by(comp_id) %>% 
   mutate(previous_growth = (lag(sales, 2)/lag(sales, 3) - 1) * 100)
 
-# based on sales keep year 2013; 2014 values will be used for other variables
+# based on sales  2014 values will be used for other variables
 # keep only growing firms 
 data  <- data %>%
   filter(year == 2014) %>% 
@@ -225,6 +225,17 @@ data <- data %>%
 ########################################################################
 # additional imputation
 ########################################################################
+# Create log sales and sales in million
+# We have negative sales values
+summary(data$sales)
+
+data <- data %>%
+  mutate(sales = ifelse(sales < 0, 1, sales),
+         ln_sales = ifelse(sales > 0, log(sales), 0),
+         sales_mil=sales/1000000,
+         sales_mil_log = ifelse(sales > 0, log(sales_mil), 0))
+
+data$sales_mil_log_sq <- (data$sales_mil_log)^2 
 
 # CEO age
 data <- data %>%
@@ -295,19 +306,7 @@ fg_inc<-ggplot(data = data, aes(x=inc_bef_tax_pl, y=as.numeric(fast_growth))) +
   labs(x = "Standardized income before tax",y = "Fast growth", title="Fast growth probability distribution") +
   theme_bw()
 fg_inc
-                    
-# Create log sales and sales in million
-# We have negative sales values
-summary(data$sales)
-
-data <- data %>%
-  mutate(sales = ifelse(sales < 0, 1, sales),
-         ln_sales = ifelse(sales > 0, log(sales), 0),
-         sales_mil=sales/1000000,
-         sales_mil_log = ifelse(sales > 0, log(sales_mil), 0))
-
-data$sales_mil_log_sq <- (data$sales_mil_log)^2 
-                  
+                                   
 
 # write data to csv
-write.csv(data, "bisnode_cleaned.csv")
+write.csv(data, "bisnode_cleaned2.csv")
